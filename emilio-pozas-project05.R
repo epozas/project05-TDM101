@@ -1,0 +1,42 @@
+options(jupyter.rich_display = F)
+options(repr.matrix.max.cols=30, repr.matrix.max.rows=200)
+myDF <- read.csv("/anvil/projects/tdm/data/election/escaped2020sample.txt", sep="|")
+head(myDF)
+library(lubridate, warn.conflicts = FALSE)
+myDF$newdates <-mdy(myDF$TRANSACTION_DT)
+head(myDF$newdates)
+myDF$TRANSACTION_YR <- year(myDF$newdates)
+head(myDF$TRANSACTION_YR)
+table_sum_AMT <- tapply(myDF$TRANSACTION_AMT, myDF$TRANSACTION_YR,sum)
+tapply_df <- data.frame(YEAR = as.numeric(names(table_sum_AMT)), TOTAL_AMOUNT = table_sum_AMT)
+table(myDF$TRANSACTION_YR)
+plot(tapply_df$YEAR, tapply_df$TOTAL_AMOUNT, xlab = "Year", ylab = "Total Amount of Transactions", main = "Total Transactions by Year")
+
+my2020DF <- subset(myDF, TRANSACTION_YR == "2020")
+my2020DF$TRANSACTION_MONT <- month(my2020DF$newdates)
+my2020_sum <- tapply(my2020DF$TRANSACTION_AMT, my2020DF$TRANSACTION_MONT, sum)
+my2020_sumDF <- data.frame(MONTH = as.numeric(names(my2020_sum)), TOTAL_AMOUNT = my2020_sum)
+plot(my2020_sumDF$MONTH, my2020_sumDF$TOTAL_AMOUNT, xlab = "Month", ylab = "Total Amount of Transactions", main = "Total Transactions by Month in 2020")
+
+namestapply <- tapply(myDF$TRANSACTION_AMT, myDF$NAME, sum)
+head(sort(namestapply, decreasing =TRUE))
+statestapply <- tapply(myDF$TRANSACTION_AMT, myDF$STATE, sum)
+head(sort(statestapply, decreasing = TRUE))
+zipcodetapply <- tapply(myDF$TRANSACTION_AMT, myDF$ZIP_CODE, sum)
+tail(sort(zipcodetapply), n =10 )
+
+top_5_states <- head(sort(statestapply, decreasing = TRUE))
+barplot(top_5_states, xlab = "State", ylab = "Total Amount of Transactions", main = "Total Transactions by Top 5 States",
+        names.arg = names(top_5_states))
+top_10_states <- tail(sort(zipcodetapply), n =10 )
+barplot(top_10_states, xlab = "Zip Code", ylab = "Total Amount of Transactions", main = "Total Transactions by Top 10 Zip Codes",
+        names.arg = names(top_10_states))
+
+head(table(myDF$OCCUPATION))
+tail(table(myDF$OCCUPATION))
+occupation_sum <- tapply(myDF$TRANSACTION_AMT, myDF$OCCUPATION, sum)
+head(sort(occupation_sum), n= 10)
+tail(sort(occupation_sum), n= 10)
+top10_occupations <- tail(sort(occupation_sum), n= 5)
+barplot(top10_occupations, xlab = "Occupations", ylab = "Total Amount of Transactions", main = "Total Transactions by Top Occupations",
+        names.arg = names(top10_occupations))
